@@ -1,12 +1,9 @@
 import requests
 
-# Tips: använd sidan nedan för att se vilken data vi får tillbaks och hur apiet fungerar
+# Tips: använd sidan nedan för att se vilken data vi får tillbaks och hur api:et fungerar
 # vi använder oss enbart av /nobelPrizes
-# Dokumentation, hjälp samt verktyg för att testa apiet fins här: https://app.swaggerhub.com/apis/NobelMedia/NobelMasterData/2.1
-
-# Tip: use the page below to see what data we get back and how the api works
-# we only use /nobelPrizes
-# Documentation, help and tools for testing the api can be found here: https://app.swaggerhub.com/apis/NobelMedia/NobelMasterData/2.1
+# Dokumentation, hjälp samt verktyg för att testa api:et fins här: https://app.swaggerhub.com/apis/NobelMedia/
+# NobelMasterData/2.1
 
 
 HELP_STRING = """
@@ -24,42 +21,49 @@ cat = {"fysik": "phy",
        "medicin": "med"}
 
 # Bekräfta att önskat fält finns i listan
-def checkFalt(field: str):
+
+
+def check_falt(field: str):
     if field not in cat:
         return False
     else:
         return True
 
 
-def printResult(peng: float, idagPeng: float, prize_cnt:int):
+def print_result(peng: float, idagPeng: float, prize_cnt: int):
     print("*" * 30)
-    pengarVarde_Ar = beraknaVinstPengar(peng, prize_cnt)
+    pengarVarde_Ar = berakna_vinst_pengar(peng, prize_cnt)
     result1 = f'{pengarVarde_Ar:.3f}'
     print(f"Prissummans värde då: {result1}")
 
-    pengarVarde_idag = beraknaVinstPengar(idagPeng, prize_cnt)
+    pengarVarde_idag = berakna_vinst_pengar(idagPeng, prize_cnt)
     result2 = f'{pengarVarde_idag:.3f}'
     print(f"Prissummans värde idag: {result2}")
 
 
 # hämta vinnarna
-def hamtaInformationFranServer (year: int, field: str):
-    params = {"nobelPrizeYear": year, "nobelPrizeCategory": field}
+def hamta_information_fran_server(year: int, field: str):
+    params = {"nobelPrizeYear": year, "nobelPrizeCategory": cat[field]}
     res = requests.get("http://api.nobelprize.org/2.1/nobelPrizes", params=params).json()
     return res
 
 # prisberäkning
 #  variabler: pris: totala priset
 #             pris_del: fördelning mellan vinnare
-#
-def beraknaVinstPengar(pris: float, pris_del: float) -> float:
+
+
+def berakna_vinst_pengar(pris: float, pris_del: float) -> float:
+    if pris_del == 0:
+        return 0.000
     summaPerVinnare = pris / pris_del
     res = round(summaPerVinnare, 3)
     return res
 
 # utskrift år och fält
-def utskriftArochFalt(year: int, field: str):
-    res = hamtaInformationFranServer(int(year), field)
+
+
+def utskrift_ar_och_falt(year: int, field: str):
+    res = hamta_information_fran_server(int(year), field)
 
     for p in res["nobelPrizes"]:
         print("----------------------------")
@@ -72,16 +76,17 @@ def utskriftArochFalt(year: int, field: str):
             print("----------------------------")
             if "knownName" in m:
                 print(m['knownName']['en'])
-                print(m['motivation']['en'])
-                andel = m['portion']
-                prize_cnt += 1
-        printResult(peng, idagPeng, prize_cnt)
+            print(m['motivation']['en'])
 
-def skrivUtAllInformationForAr(year: int):
+            prize_cnt += 1
+        print_result(peng, idagPeng, prize_cnt)
+
+
+def skriv_ut_all_information_for_ar(year: int):
     for item in cat:
         print("*" * 30)
         print(f"Field is {item}")
-        res = hamtaInformationFranServer(int(year), item)
+        res = hamta_information_fran_server(int(year), item)
 
         for p in res["nobelPrizes"]:
             print("----------------------------")
@@ -96,9 +101,9 @@ def skrivUtAllInformationForAr(year: int):
                 if "knownName" in m:
                     print(m['knownName']['en'])
                 print(m['motivation']['en'])
-                andel = m['portion']
+
                 prize_cnt += 1
-            printResult(peng, idagPeng, prize_cnt)
+            print_result(peng, idagPeng, prize_cnt)
 
 
 def main():
@@ -121,13 +126,13 @@ def main():
                 flag = "OneField"
                 year, field = aaa.split()
 
-            if flag == "OneField" and not checkFalt(field):
+            if flag == "OneField" and not check_falt(field):
                 print("Skriv rätt fält.\n För att se alla fält tryck 2")
             else:
                 if flag == "OneField":
-                    utskriftArochFalt(int(year), field)
+                    utskrift_ar_och_falt(int(year), field)
                 else:
-                    skrivUtAllInformationForAr(int(year))
+                    skriv_ut_all_information_for_ar(int(year))
 
         if menu_choice == '2':
             print("Alla fält:")
