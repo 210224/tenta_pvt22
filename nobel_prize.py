@@ -41,8 +41,6 @@ def main():
         # TODO 5p Skriv bara ut hjälptexten en gång när programmet startar inte efter varje gång användaren matat in en fråga
         #      Förbättra hjälputskriften så att användaren vet vilka fält, exempelvis kemi som finns att välja på
         menu_choice = input("Välj ett fält: ")
-        if menu_choice == '1':
-            pass
         if menu_choice == '2':
             print("Lista med alla fält:")
             for item in cat:
@@ -57,14 +55,31 @@ def main():
         if menu_choice.upper() == 'Q':
             print("Good-bye and thank you for the fish!")
             return
-        # TODO 5p Only print the help text once when the program does not start after each time the user enters a question
-        # Improve the help printout so that the user knows which fields, for example chemistry, are available to choose from
 
-        # TODO 5p Make sure there is a way to terminate the program, if the user types Q the program should be shut down
-        # Describe in the help text how to end the program
-        # TODO 5p Make the help text printed if the user types h or H
+        aaa = input(">")
+        a, b = aaa.split()
+        c = cat[b]
 
+        c = {"nobelPrizeYear": int(a), "nobelPrizeCategory": c}
 
+        res = requests.get("http://api.nobelprize.org/2.1/nobelPrizes", params=c).json()
+        # TODO 5p  Lägg till någon typ av avskiljare mellan pristagare, exempelvis --------------------------
+
+        # TODO 20p Skriv ut hur mycket pengar varje pristagare fick, tänk på att en del priser delas mellan flera mottagare, skriv ut både i dåtidens pengar och dagens värde
+        #   Skriv ut med tre decimalers precision. exempel 534515.123
+        #   Skapa en funktion som hanterar uträkningen av prispengar och skapa minst ett enhetestest för den funktionen
+        #   Tips, titta på variabeln andel
+        # Feynman fick exempelvis 1/3 av priset i fysik 1965, vilket borde gett ungefär 282000/3 kronor i dåtidens penningvärde
+
+        for p in res["nobelPrizes"]:
+            peng = p["prizeAmount"]
+            idagpeng = p["prizeAmountAdjusted"]
+            print(f"{p['categoryFullName']['se']} prissumma {peng} SEK")
+
+            for m in p["laureates"]:
+                print(m['knownName']['en'])
+                print(m['motivation']['en'])
+                andel = m['portion']
 
 if __name__ == '__main__':
     main()
