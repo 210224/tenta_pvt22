@@ -40,6 +40,32 @@ def beraknaVinstPengar(pris: float, pris_del: float):
     res = round(summaPerVinnare, 3)
     return res
 
+# utskrift år och fält
+def utskriftArochFalt(year: int, field: str):
+    res = getInforamationFromServer(int(year), field)
+
+    for p in res["nobelPrizes"]:
+        print("----------------------------")
+        peng = p["prizeAmount"]
+        idagpeng = p["prizeAmountAdjusted"]
+        print(f"{p['categoryFullName']['se']} prissumma {peng} SEK")
+        prize_cnt = 0
+
+        for m in p["laureates"]:
+            print("----------------------------")
+            if "knownName" in m:
+                print(m['knownName']['en'])
+            print(m['motivation']['en'])
+            andel = m['portion']
+            prize_cnt += 1
+        print("*" * 30)
+        money_for_thattime = calcMoneyForEachPrize(peng, prize_cnt)
+        result1 = f'{money_for_thattime:.3f}'
+        print(f"The money of the time for each prizer is {result1}")
+
+        money_for_now = calcMoneyForEachPrize(idagpeng, prize_cnt)
+        result2 = f'{money_for_now:.3f}'
+        print(f"The Today's value for each prizer is {result2}")
 
 
 
