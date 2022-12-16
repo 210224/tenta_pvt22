@@ -24,13 +24,25 @@ cat = {"fysik": "phy",
        "fred": "pea",
        "medicin": "med"}
 
-# TODO 10p programmet skall ge en hjälpsam utskrift istället för en krasch om användaren skriver in fel input
-# TODO 15p om användaren inte anger ett område som exempelvis fysik eller kemi så skall den parametern inte skickas med till apiet och vi får då alla priser det året
-"--------------------------------------"
+# Bekräfta att önskat fält finns i listan
+def checkFalt(field: str):
+    if field not in cat:
+        return False
+    else:
+        return True
+
+# prisberäkning
+#  variables: pris: totala pris
+#             pris_del: fördelning mellan vinnare
+#
+def beraknaVinstPengar(pris: float, pris_del: float):
+    summaPerVinnare = pris / pris_del
+    res = round(summaPerVinnare, 3)
+    return res
 
 
-# TODO 10p the program should give a helpful output instead of a crash if the user enters the wrong input
-# TODO 15p if the user does not specify a field such as physics or chemistry, then that parameter should not be sent to the api and we will then receive all the prizes for that year
+
+
 
 
 def main():
@@ -40,7 +52,7 @@ def main():
 
         # TODO 5p Skriv bara ut hjälptexten en gång när programmet startar inte efter varje gång användaren matat in en fråga
         #      Förbättra hjälputskriften så att användaren vet vilka fält, exempelvis kemi som finns att välja på
-        menu_choice = input("Välj ett fält: ")
+        menu_choice = input("Skriv önskat årtal och vilket fält efter: ")
         if menu_choice == '2':
             print("Lista med alla fält:")
             for item in cat:
