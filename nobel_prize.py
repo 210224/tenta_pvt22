@@ -10,8 +10,7 @@ import requests
 
 
 HELP_STRING = """
-Ange ett år och fält
-Exempelvis 1965 fysik
+Tryck 1 Ange ett år och fält - Exempelvis 1965 fysik
 Tryck 2 för att lista alla fält
 Tryck Q för att avsluta
 Tryck H för att få en hjälpruta
@@ -31,23 +30,41 @@ def checkFalt(field: str):
     else:
         return True
 
+
+def printResult(peng: float, idagPeng: float, prize_cnt:int):
+    print("*" * 30)
+    pengarVarde_Ar = beraknaVinstPengar(peng, prize_cnt)
+    result1 = f'{pengarVarde_Ar:.3f}'
+    print(f"Prissummans värde då: {result1}")
+
+    pengarVarde_idag = beraknaVinstPengar(idagPeng, prize_cnt)
+    result2 = f'{pengarVarde_idag:.3f}'
+    print(f"Prissummans värde idag: {result2}")
+
+
+# hämta vinnarna
+def hamtaInformationFranServer (year: int, field: str):
+    params = {"nobelPrizeYear": year, "nobelPrizeCategory": field}
+    res = requests.get("http://api.nobelprize.org/2.1/nobelPrizes", params=params).json()
+    return res
+
 # prisberäkning
-#  variables: pris: totala pris
+#  variabler: pris: totala priset
 #             pris_del: fördelning mellan vinnare
 #
-def beraknaVinstPengar(pris: float, pris_del: float):
+def beraknaVinstPengar(pris: float, pris_del: float) -> float:
     summaPerVinnare = pris / pris_del
     res = round(summaPerVinnare, 3)
     return res
 
 # utskrift år och fält
 def utskriftArochFalt(year: int, field: str):
-    res = getInforamationFromServer(int(year), field)
+    res = hamtaInformationFranServer(int(year), field)
 
     for p in res["nobelPrizes"]:
         print("----------------------------")
         peng = p["prizeAmount"]
-        idagpeng = p["prizeAmountAdjusted"]
+        idagPeng = p["prizeAmountAdjusted"]
         print(f"{p['categoryFullName']['se']} prissumma {peng} SEK")
         prize_cnt = 0
 
@@ -55,20 +72,33 @@ def utskriftArochFalt(year: int, field: str):
             print("----------------------------")
             if "knownName" in m:
                 print(m['knownName']['en'])
-            print(m['motivation']['en'])
-            andel = m['portion']
-            prize_cnt += 1
+                print(m['motivation']['en'])
+                andel = m['portion']
+                prize_cnt += 1
+        printResult(peng, idagPeng, prize_cnt)
+
+def skrivUtAllInformationForAr(year: int):
+    for item in cat:
         print("*" * 30)
-        money_for_thattime = calcMoneyForEachPrize(peng, prize_cnt)
-        result1 = f'{money_for_thattime:.3f}'
-        print(f"The money of the time for each prizer is {result1}")
+        print(f"Field is {item}")
+        res = hamtaInformationFranServer(int(year), item)
 
-        money_for_now = calcMoneyForEachPrize(idagpeng, prize_cnt)
-        result2 = f'{money_for_now:.3f}'
-        print(f"The Today's value for each prizer is {result2}")
+        for p in res["nobelPrizes"]:
+            print("----------------------------")
+            peng = p["prizeAmount"]
+            idagPeng = p["prizeAmountAdjusted"]
+            print(f"{p['categoryFullName']['se']} prissumma {peng} SEK")
+            print(f"{p['categoryFullName']['se']} prissumma {idagPeng} SEK")
+            prize_cnt = 0
 
-
-
+            for m in p["laureates"]:
+                print("----------------------------")
+                if "knownName" in m:
+                    print(m['knownName']['en'])
+                print(m['motivation']['en'])
+                andel = m['portion']
+                prize_cnt += 1
+            printResult(peng, idagPeng, prize_cnt)
 
 
 def main():
@@ -76,48 +106,41 @@ def main():
 
     while True:
 
-        # TODO 5p Skriv bara ut hjälptexten en gång när programmet startar inte efter varje gång användaren matat in en fråga
-        #      Förbättra hjälputskriften så att användaren vet vilka fält, exempelvis kemi som finns att välja på
-        menu_choice = input("Skriv önskat årtal och vilket fält efter: ")
+        menu_choice = input("\nVäl ett alternativ ovan? \n \n").upper().strip()
+
+        if menu_choice == '1':
+            field = ""
+            year = ""
+            aaa = input(">")
+            str_list = aaa.split()
+            flag = "All"
+            if len(str_list) == 1:
+                flag = "All"
+                year = str_list[0]
+            else:
+                flag = "OneField"
+                year, field = aaa.split()
+
+            if flag == "OneField" and not checkFalt(field):
+                print("Skriv rätt fält.\n För att se alla fält tryck 2")
+            else:
+                if flag == "OneField":
+                    utskriftArochFalt(int(year), field)
+                else:
+                    skrivUtAllInformationForAr(int(year))
+
         if menu_choice == '2':
-            print("Lista med alla fält:")
+            print("Alla fält:")
             for item in cat:
                 print(item)
-            pass
-        # TODO 5p Gör så att det finns ett sätt att avsluta programmet, om användaren skriver Q så skall programmet stängas av
-        #      Beskriv i hjälptexten hur man avslutar programmet
-        # TODO 5p Gör så att hjälptexten skrivs ut om användaren skriver h eller H
-        "---------------------------------------"
+            continue
         if menu_choice.upper() == 'H':
             print(HELP_STRING)
+            continue
         if menu_choice.upper() == 'Q':
             print("Good-bye and thank you for the fish!")
             return
 
-        aaa = input(">")
-        a, b = aaa.split()
-        c = cat[b]
-
-        c = {"nobelPrizeYear": int(a), "nobelPrizeCategory": c}
-
-        res = requests.get("http://api.nobelprize.org/2.1/nobelPrizes", params=c).json()
-        # TODO 5p  Lägg till någon typ av avskiljare mellan pristagare, exempelvis --------------------------
-
-        # TODO 20p Skriv ut hur mycket pengar varje pristagare fick, tänk på att en del priser delas mellan flera mottagare, skriv ut både i dåtidens pengar och dagens värde
-        #   Skriv ut med tre decimalers precision. exempel 534515.123
-        #   Skapa en funktion som hanterar uträkningen av prispengar och skapa minst ett enhetestest för den funktionen
-        #   Tips, titta på variabeln andel
-        # Feynman fick exempelvis 1/3 av priset i fysik 1965, vilket borde gett ungefär 282000/3 kronor i dåtidens penningvärde
-
-        for p in res["nobelPrizes"]:
-            peng = p["prizeAmount"]
-            idagpeng = p["prizeAmountAdjusted"]
-            print(f"{p['categoryFullName']['se']} prissumma {peng} SEK")
-
-            for m in p["laureates"]:
-                print(m['knownName']['en'])
-                print(m['motivation']['en'])
-                andel = m['portion']
 
 if __name__ == '__main__':
     main()
